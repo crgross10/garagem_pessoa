@@ -10,11 +10,8 @@ from django.core import serializers
 from pessoa.models import Pessoa
 from pessoa.serializers import PessoaSerializer
 
-from garagem.models import Garagem
+from garagem.models import Garagem, Veiculo
 from garagem.serializers import GaragemSerializer, GaragemOnlySerializer
-
-
-
 
 
 
@@ -27,34 +24,35 @@ class ConsultaGaragensViewSet(viewsets.ModelViewSet):
     queryset = Garagem.objects.all()
     serializer_class =  GaragemOnlySerializer
 
-class ConsultaClientesGaragemSemVeiculosViewSet(viewsets.ModelViewSet):
-    queryset = Garagem.objects.all()
-    serializer_class =  GaragemSerializer
 
 api_view(['GET'])
 def consultaClientesGaragemVeiculosView(request):
     dicDados= {}
     idGaragens = []
     listVeiculos = []
+
+    pessoa = Pessoa.objects.all()
     garagem = Garagem.objects.all()
-    print(garagem)
-    garagem = garagem.filter().extra(select={
-                                      "veiculo":
-                                      " SELECT descricao FROM veiculo WHERE garagem = "
-                                      " id ",
-                                     }).values('id','pessoa', 'descricao', 'veiculo')
-    for i in garagem:
-        if i['veiculo'] != None:
-           idGaragens.append(i['id'])
-           listVeiculos.append('veiculo: ' + str(i['veiculo']) - ' garagem: ' + str(i['descricao']) )
-    print(garagem)
-    garagem = garagem.filter(id__in=idGaragens)
-    print(listVeiculos)
+    veiculo =  Veiculo.objects.all()
+    count=0
 
-    garagemJson = serializers.serialize("json",garagem)
-    garagemObj = json.loads(garagemJson)
+    for p in pessoa:
+        dicVeiculos= {}
+        countVeic = 0
+        count=count+1
+        gar = garagem.filter(pessoa=p)
+        for g in gar:
+            veic =  veiculo.filter(garagem=g)
+            if len(veic) > 0:
+                for v in veic:
+                    print(countVeic)
+                    countVeic= countVeic+1
+                    dicVeiculos.update({countVeic:{'descricao': v.descricao, 'cor': v.cor, 'ano': v.ano, 'modelo': v.modelo}})
 
-    return HttpResponse(json.dumps(garagemObj), content_type='application/json')
+            if len(dicVeiculos) > 0:
+                dicDados.update({'Ciente'+ str(count) :{'nome':p.nome, 'telefone': p.telefone, 'e-mail':p.email, 'Garagem':{'descricao': g.descricao, 'veiculos':dicVeiculos}}})
+
+    return HttpResponse(json.dumps(dicDados), content_type='application/json')
 
 
 
@@ -63,25 +61,21 @@ def consultaClientesGaragemSVeiculosView(request):
     dicDados= {}
     idGaragens = []
     listVeiculos = []
+
+    pessoa = Pessoa.objects.all()
     garagem = Garagem.objects.all()
-    garagens = garagem.filter().extra(select={
-                                      "veiculo":
-                                      " SELECT descricao FROM veiculo WHERE garagem = "
-                                      " id ",
-                                     }).values('id','pessoa', 'descricao', 'veiculo')
-    for i in garagens:
-        if i['veiculo'] == None:
-           idGaragens.append(i['id'])
+    veiculo =  Veiculo.objects.all()
+    count=0
+    for p in pessoa:
+        count=count+1
+        gar = garagem.filter(pessoa=p)
+        for g in gar:
+            veic =  veiculo.filter(garagem=g)
+            if len(veic) == 0:
+                dicDados.update({'Ciente'+ str(count) :{'nome':p.nome, 'telefone': p.telefone, 'e-mail':p.email, 'Garagem':{'descricao': g.descricao}}})
 
+    return HttpResponse(json.dumps(dicDados),  content_type='application/json')
 
-    garagem = garagem.filter(id__in=idGaragens)
-
-
-    print(garagem)
-    garagemJson = serializers.serialize("json",garagem)
-    garagemObj = json.loads(garagemJson)
-
-    return HttpResponse(json.dumps(garagemObj),  content_type='application/json')
 
 
 
