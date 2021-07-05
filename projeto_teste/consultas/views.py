@@ -14,8 +14,6 @@ from garagem.models import Garagem, Veiculo
 from garagem.serializers import GaragemSerializer, GaragemOnlySerializer
 
 
-
-
 class ConsultaClientesViewSet(viewsets.ModelViewSet):
     queryset = Pessoa.objects.all()
     serializer_class =  PessoaSerializer
@@ -75,14 +73,3 @@ def consultaClientesGaragemSVeiculosView(request):
                 dicDados.update({'Ciente'+ str(count) :{'nome':p.nome, 'telefone': p.telefone, 'e-mail':p.email, 'Garagem':{'descricao': g.descricao}}})
 
     return HttpResponse(json.dumps(dicDados),  content_type='application/json')
-
-
-
-
-
-
-'''
-Por fim crie uma API para uma aplicação terceira consultar todos os clientes
-cadastrados, todas as garagens ativas, e quais clientes possuem veículos
-vinculados a suas garagens e quais não possue
-'''
