@@ -8,11 +8,13 @@ from garagem.models import Garagem
 from garagem.serializers import GaragemSerializer
 from .serializers import PessoaSerializer
 from django.contrib.auth.models import User
+from .permissions import IsAdmin
 
 # Create your views here.
 class PessoaViewSet(viewsets.ModelViewSet):
     queryset = Pessoa.objects.all()
     serializer_class =  PessoaSerializer
+    permission_classes = (IsAdmin,)
 
     @action(detail=False, methods=['POST'])
     def cadastrarPessoaGaragem(self, request, pk = None):
